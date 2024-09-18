@@ -16,6 +16,8 @@ import com.trongphu.finalintern2.util.file.FileUpLoadUtil;
 import org.springframework.data.domain.Page;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
@@ -57,7 +59,7 @@ public class CategoryService implements ICategoryService {
     @Override
     public CategoryResponseDTO getById(Long id) {
         Optional<Category> category = categoryRepository.findById(id);
-        if(category.isEmpty()){
+        if (category.isEmpty()) {
             throw new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName());
         }
         return categoryResponseDTOMapper.toDTO(category.get());
@@ -71,6 +73,7 @@ public class CategoryService implements ICategoryService {
 
     // Create new
     @Override
+    @Transactional
     public CategoryResponseDTO create(CategoryRequestDTO categoryRequestDTO) {
         if (checkCode(categoryRequestDTO.getCategoryCode())) {
             Category categoryNew = categoryRequestDTOMapper.toEntity(categoryRequestDTO);
@@ -79,32 +82,49 @@ public class CategoryService implements ICategoryService {
             categoryNew.setCreatedBy("ADMIN-NTP");
             categoryNew.setModifiedBy("ADMIN-NTP");
             categoryNew.setStatus(CategoryStatus.ACTIVE);
-            try {
-                boolean checkFile = FileUpLoadUtil.checkFileUpload(categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
-                if (checkFile) {
-                    categoryNew.setImg(FileUpLoadUtil.uploadFile(categoryRequestDTO.getImgFile()));
-                }
-            } catch (IOException e) {
-                throw new FileUploadErrorException("exception_file.FileUploadErrorException");
-            }
+            handleUploadFile(categoryNew, categoryRequestDTO.getImgFile());
             return categoryResponseDTOMapper.toDTO(categoryRepository.save(categoryNew));
         }
         return null;
     }
 
-    // Update
+    // Update category
     @Override
+    @Transactional
     public CategoryResponseDTO update(Long id, CategoryRequestDTO categoryRequestDTO) {
-        return null;
+        Category categoryExisting = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName()));
+        Category categoryToUpdate = categoryRequestDTOMapper.toEntity(categoryRequestDTO);
+
+        //Cập nhật các trường cần thay đổi
+        categoryExisting.setModifiedDate(new Date());
+        categoryExisting.setModifiedBy("ADMIN-NTP");
+        categoryExisting.setName(categoryToUpdate.getName());
+        categoryExisting.setDescription(categoryToUpdate.getDescription());
+
+        //Kiểm tra nếu có file ảnh đính kèm thì update lại tên ảnh
+        if (categoryRequestDTO.getImgFile() != null) {
+            handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile());
+        }
+
+        // Lưu đối tượng cần cập nhật vào DB
+        Category categoryUpdated = categoryRepository.save(categoryExisting);
+        return categoryResponseDTOMapper.toDTO(categoryUpdated);
+    }
+
+    // Xóa mềm
+    @Transactional
+    @Override
+    public void softDelete(Long id) {
+        categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName()));
+        categoryRepository.softDelete(id);
     }
 
     //Phân trang tìm kiếm
     @Override
     public Page<CategoryResponseDTO> searchPage(PaginationObject paginationObject, String categoryCode, String name, Date startDate, Date endDate) {
-        return   categoryRepository
+        return categoryRepository
                 .searchPage(paginationObject.toPageable(), categoryCode, name, startDate, endDate)
                 .map(categoryResponseDTOMapper::toDTO);
-
     }
 
     /**
@@ -116,5 +136,16 @@ public class CategoryService implements ICategoryService {
             throw new DuplicateCodeEntityException("exception.DuplicateCodeEntityException", code);
         }
         return true;
+    }
+
+    void handleUploadFile(Category category, MultipartFile file) {
+        try {
+            boolean checkFile = FileUpLoadUtil.checkFileUpload(file, FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+            if (checkFile) {
+                category.setImg(FileUpLoadUtil.uploadFile(file));
+            }
+        } catch (IOException e) {
+            throw new FileUploadErrorException("exception_file.FileUploadErrorException");
+        }
     }
 }

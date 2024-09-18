@@ -52,4 +52,11 @@ public class ProductService implements IProductService {
     public ProductResponseDTO update(Long id, ProductRequestDTO productRequestDTO) {
         return null;
     }
+
+    @Override
+    public void softDelete(Long id) {
+
+    }
+
+
 }

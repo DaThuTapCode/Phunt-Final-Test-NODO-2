@@ -51,7 +51,7 @@ public class FileUpLoadUtil {
             Long conditionSize
 
     ) {
-        if (multipartFile == null) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
             return false;
         }
 

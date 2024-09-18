@@ -1,6 +1,8 @@
 package com.trongphu.finalintern2.dto.category.request;
 
 
+import com.trongphu.finalintern2.util.groupsvalidator.CreateGroup;
+import com.trongphu.finalintern2.util.groupsvalidator.UpdateGroup;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -18,18 +20,17 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @Builder
 public class CategoryRequestDTO {
-//    private Long id;
 
-    @NotBlank(message = "NotBlank")
-    @Length(min = 10, max = 10, message = "Length")
+    @NotBlank(message = "NotBlank", groups = {CreateGroup.class})
+    @Length(min = 10, max = 10, message = "Length", groups = {CreateGroup.class})
     private String categoryCode;
 
-    @NotBlank(message = "NotBlank")
-    @Length(min = 3, max = 255, message = "Length")
+    @NotBlank(message = "NotBlank", groups = {CreateGroup.class, UpdateGroup.class})
+    @Length(min = 3, max = 255, message = "Length", groups = {CreateGroup.class, UpdateGroup.class})
     private String name;
 
     private MultipartFile imgFile;
 
-    @Length(min = 3, max = 255, message = "Length")
+    @Length(min = 3, max = 255, message = "Length", groups = {CreateGroup.class, UpdateGroup.class})
     private String description;
 }

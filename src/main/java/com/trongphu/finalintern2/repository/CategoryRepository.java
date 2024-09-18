@@ -4,6 +4,7 @@ import com.trongphu.finalintern2.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,6 +40,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
                 SELECT c FROM Category c WHERE c.status like 'ACTIVE' AND c.id = :id
             """)
     Optional<Category> findById(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Category c SET c.status = 'INACTIVE' WHERE c.id = :id")
+    void softDelete(@Param(value = "id") Long id);
 
 
 }

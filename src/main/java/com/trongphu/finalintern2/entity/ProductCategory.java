@@ -1,5 +1,6 @@
 package com.trongphu.finalintern2.entity;
 
+import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,4 +39,7 @@ public class ProductCategory {
     private String createdBy;
 
     private String modifiedBy;
+
+    @Enumerated(EnumType.STRING)
+    private ProductCategoryStatus status;
 }

@@ -30,4 +30,9 @@ public interface BaseService <E, ID, RQ, RP>{
      * Update entity theo id*/
     RP update (Long id, RQ rq);
 
+    /**
+     * Xóa mềm entity
+     * */
+    void softDelete(ID id);
+
 }
