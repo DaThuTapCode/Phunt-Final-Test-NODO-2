@@ -29,6 +29,9 @@ public interface ProductResponseDTOMapper extends BaseMapper<Product, ProductRes
     ProductResponseDTO toDTO(Product product);
 
     default List<CategoryShortResponseDTO> mapListCategoryShortResponseDTO(List<ProductCategory> productCategories) {
+        if(productCategories == null){
+            return null;
+        }
         return productCategories.stream()
                 .map(ProductCategory::getCategory)
                 .map(categoryShortResponseDtoMapper::toDTO)

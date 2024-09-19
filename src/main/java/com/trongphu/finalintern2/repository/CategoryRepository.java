@@ -37,7 +37,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     );
 
     @Query("""
-                SELECT c FROM Category c WHERE c.status like 'ACTIVE' AND c.id = :id
+                SELECT c FROM Category c WHERE c.status = 'ACTIVE' AND c.id = :id
             """)
     Optional<Category> findById(@Param("id") Long id);
 

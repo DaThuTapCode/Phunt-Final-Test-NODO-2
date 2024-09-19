@@ -62,6 +62,9 @@ public class GlobalExceptionHandler {
             message = Translator.toLocale(e.getMessage(), new Object[]{((InvalidArgumentException) e).getArgumentValue(), ((InvalidArgumentException) e).getArgumentName()});
         } else if (e instanceof ResourceNotFoundException) {
             message = Translator.toLocale(e.getMessage(), new Object[]{((ResourceNotFoundException) e).getNameResource()});
+            ResponseErrorObject errorObject = createResponseError(request, HttpStatus.NOT_FOUND, message);
+            errorObject.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
+            return ResponseEntity.status(status).body(errorObject);
         } else if (e instanceof MethodArgumentTypeMismatchException) {
             message = Translator.toLocale("exception.MethodArgumentTypeMismatchException", new Object[]{((MethodArgumentTypeMismatchException) e).getValue(), ((MethodArgumentTypeMismatchException) e).getName()});
         } else if (e instanceof MissingPathVariableException) {

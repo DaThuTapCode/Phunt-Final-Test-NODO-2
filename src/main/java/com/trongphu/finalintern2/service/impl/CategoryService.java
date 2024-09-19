@@ -82,7 +82,7 @@ public class CategoryService implements ICategoryService {
             categoryNew.setCreatedBy("ADMIN-NTP");
             categoryNew.setModifiedBy("ADMIN-NTP");
             categoryNew.setStatus(CategoryStatus.ACTIVE);
-            handleUploadFile(categoryNew, categoryRequestDTO.getImgFile());
+            handleUploadFile(categoryNew, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
             return categoryResponseDTOMapper.toDTO(categoryRepository.save(categoryNew));
         }
         return null;
@@ -103,9 +103,8 @@ public class CategoryService implements ICategoryService {
 
         //Kiểm tra nếu có file ảnh đính kèm thì update lại tên ảnh
         if (categoryRequestDTO.getImgFile() != null) {
-            handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile());
+            handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
         }
-
         // Lưu đối tượng cần cập nhật vào DB
         Category categoryUpdated = categoryRepository.save(categoryExisting);
         return categoryResponseDTOMapper.toDTO(categoryUpdated);
@@ -138,12 +137,9 @@ public class CategoryService implements ICategoryService {
         return true;
     }
 
-    void handleUploadFile(Category category, MultipartFile file) {
+    void handleUploadFile(Category category, MultipartFile file, String conditionType, Long conditionSize) {
         try {
-            boolean checkFile = FileUpLoadUtil.checkFileUpload(file, FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
-            if (checkFile) {
-                category.setImg(FileUpLoadUtil.uploadFile(file));
-            }
+            category.setImg(FileUpLoadUtil.uploadFile(file, conditionType, conditionSize));
         } catch (IOException e) {
             throw new FileUploadErrorException("exception_file.FileUploadErrorException");
         }

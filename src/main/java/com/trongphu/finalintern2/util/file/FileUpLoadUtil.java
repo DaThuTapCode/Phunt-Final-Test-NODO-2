@@ -23,11 +23,11 @@ public class FileUpLoadUtil {
     private static final Tika tika = new Tika();
     public static final String FILE_TYPE_IMAGE = "image/";
 
-    private static boolean fileIsImage(MultipartFile file){
+    private static boolean fileIsImage(MultipartFile file) {
         try {
             String mimiType = tika.detect(file.getInputStream());
             return mimiType.startsWith(FILE_TYPE_IMAGE);
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
@@ -43,7 +43,6 @@ public class FileUpLoadUtil {
      * @param multipartFile file được upload, đối tượng {@link MultipartFile}
      * @param conditionSize kích thước tối đa cho phép của file, tính bằng MB
      * @param conditionType kiểu file mà file phải tuân theo
-     *
      */
     public static boolean checkFileUpload(
             MultipartFile multipartFile,
@@ -68,35 +67,34 @@ public class FileUpLoadUtil {
 
     /**
      * Lưu file uploads
-     *
-     * */
-    public static String uploadFile(MultipartFile file) throws IOException {
-        if(file != null && !file.isEmpty()){
-            //Chuẩn bị tên file mới
-            UUID uuid = UUID.randomUUID();
-            String newFileName = uuid + "_" + file.getOriginalFilename();
+     */
+    public static String uploadFile(MultipartFile file, String conditionType, Long conditionSize) throws IOException {
+        if (checkFileUpload(file, conditionType, conditionSize)) {
+                //Chuẩn bị tên file mới
+                UUID uuid = UUID.randomUUID();
+                String newFileName = uuid + "_" + file.getOriginalFilename();
 
-            //Định nghĩa thư mục lưu trữ;
-            Path uploadDir = Paths.get("uploads");
-            //Kiểm tra thư mục có tồn tại hay không chưa thì tạo mới
-            if(!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
-            Path destination = Paths.get(uploadDir.toString(), newFileName);
-            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-            return newFileName;
+                //Định nghĩa thư mục lưu trữ;
+                Path uploadDir = Paths.get("uploads");
+                //Kiểm tra thư mục có tồn tại hay không chưa thì tạo mới
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                }
+                Path destination = Paths.get(uploadDir.toString(), newFileName);
+                Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+                return newFileName;
         }
         return null;
     }
 
     /**
      * Xóa file
-     * */
-    public static boolean deleteFileByName(String fileName){
+     */
+    public static boolean deleteFileByName(String fileName) {
         Path uploadDir = Paths.get("uploads");
         Path destination = Paths.get(uploadDir.toString(), fileName);
         File file = new File(String.valueOf(destination));
-        if(file.exists()) {
+        if (file.exists()) {
             return file.delete();
         }
         return false;
