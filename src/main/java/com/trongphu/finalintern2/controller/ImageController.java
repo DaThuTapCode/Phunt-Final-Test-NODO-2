@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Trong Phu
  */
 @RestController
-@RequestMapping("api/images")
+@RequestMapping("images")
 public class ImageController {
 
     @GetMapping(value = "")

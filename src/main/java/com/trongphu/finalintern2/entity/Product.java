@@ -49,7 +49,7 @@ public class Product {
     @OneToMany(
             mappedBy = "product",
             fetch = FetchType.LAZY,
-            cascade = CascadeType.PERSIST
+            cascade = {CascadeType.MERGE, CascadeType.PERSIST}
     )
     private List<ProductCategory> productCategories;
 }

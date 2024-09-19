@@ -16,13 +16,12 @@ import org.springframework.beans.factory.annotation.Value;
  */
 @Mapper(componentModel = "spring")
 public interface CategoryResponseDTOMapper extends BaseMapper<Category, CategoryResponseDTO> {
-    String SERVER = VariableHehe.SERVER_PORT;
     @Override
     @Mapping(target = "img", source = "img", qualifiedByName = "img")
     CategoryResponseDTO toDTO(Category category);
 
     @Named(value = "img")
     default String mapServerForImage(String img) {
-        return SERVER + "/" + img;
+        return VariableHehe.SERVER_PORT + "/images/" + img;
     }
 }

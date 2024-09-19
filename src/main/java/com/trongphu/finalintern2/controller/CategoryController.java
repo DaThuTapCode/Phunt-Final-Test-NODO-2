@@ -9,6 +9,7 @@ import com.trongphu.finalintern2.util.groupsvalidator.CreateGroup;
 import com.trongphu.finalintern2.util.groupsvalidator.UpdateGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -73,8 +74,8 @@ public class CategoryController {
             @RequestBody PaginationObject paginationObject,
             @RequestParam(required = false) String categoryCode,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Date startDate,
-            @RequestParam(required = false) Date endDate
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date endDate
     ) {
         return ResponseEntity.ok(categoryService.searchPage(paginationObject, categoryCode, name, startDate, endDate));
     }

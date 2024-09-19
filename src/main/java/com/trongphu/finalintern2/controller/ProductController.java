@@ -2,14 +2,20 @@ package com.trongphu.finalintern2.controller;
 
 import com.trongphu.finalintern2.dto.product.request.ProductRequestDTO;
 import com.trongphu.finalintern2.dto.product.response.ProductResponseDTO;
+import com.trongphu.finalintern2.dto.product.response.ProductSearchResponseDTO;
 import com.trongphu.finalintern2.objectutil.PaginationObject;
 import com.trongphu.finalintern2.service.interfaceservice.IProductService;
+import com.trongphu.finalintern2.util.groupsvalidator.CreateGroup;
+import com.trongphu.finalintern2.util.groupsvalidator.UpdateGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+
 
 /**
  * Created by Trong Phu on 17/09/2024 22:45
@@ -40,13 +46,13 @@ public class ProductController {
 
     /**
      * @apiNote API tìm kiếm phân trang Product*/
-    @GetMapping(value = "search")
-    public ResponseEntity<Page<ProductResponseDTO>> searchProduct(
+    @PostMapping (value = "search")
+    public ResponseEntity<Page<ProductSearchResponseDTO>> searchProduct(
             @RequestBody PaginationObject paginationObject,
             @RequestParam(required = false) String productCode,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Date startDate,
-            @RequestParam(required = false) Date endDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date endDate,
             @RequestParam(required = false) Long categoryId
     ) {
         return ResponseEntity.ok(productService.searchProduct(paginationObject, productCode, name, startDate, endDate, categoryId));
@@ -61,15 +67,22 @@ public class ProductController {
 
     @PostMapping(value = "create")
     public ResponseEntity<ProductResponseDTO> createNewProduct(
-            @ModelAttribute ProductRequestDTO productRequestDTO
+            @ModelAttribute @Validated(value = CreateGroup.class) ProductRequestDTO productRequestDTO
             ){
         return ResponseEntity.ok(productService.create(productRequestDTO));
     }
 
-    @PutMapping(value = "delete/{id}")
+    @PutMapping("update/{id}")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
-            @ModelAttribute ProductRequestDTO productRequestDTO
+            @ModelAttribute @Validated(value = UpdateGroup.class) ProductRequestDTO productRequestDTO
+    ){
+        return ResponseEntity.ok(productService.update(id, productRequestDTO));
+    }
+
+    @PutMapping(value = "delete/{id}")
+    public ResponseEntity<ProductResponseDTO> deleteProduct(
+            @PathVariable Long id
     ){
         productService.softDelete(id);
         return ResponseEntity.noContent().build();
