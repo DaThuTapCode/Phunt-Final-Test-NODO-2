@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-public class Category {
+public class Category extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,14 +30,6 @@ public class Category {
 
     private String img;
 
-    private Date createdDate;
-
-    private Date modifiedDate;
-
-    private String createdBy;
-
-    private String modifiedBy;
-
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -45,7 +37,8 @@ public class Category {
 
     @OneToMany(
             mappedBy = "category",
-            fetch = FetchType.LAZY
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.MERGE}
     )
     private List<ProductCategory> productCategories;
 }

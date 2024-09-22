@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Product {
+public class Product extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,14 +37,6 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
-
-    private Date createdDate;
-
-    private Date modifiedDate;
-
-    private String createdBy;
-
-    private String modifiedBy;
 
     @OneToMany(
             mappedBy = "product",

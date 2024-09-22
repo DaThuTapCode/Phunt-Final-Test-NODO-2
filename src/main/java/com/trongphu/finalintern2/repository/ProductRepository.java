@@ -1,5 +1,6 @@
 package com.trongphu.finalintern2.repository;
 
+import com.trongphu.finalintern2.entity.Category;
 import com.trongphu.finalintern2.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,12 +25,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
     List<Product> findAll();
 
+    @Query("SELECT p FROM Product  p WHERE p.productCode = :code")
+    Optional<Product> findCategoryByProductCode(@Param(value = "code") String code);
+
     @Override
     @Query(value = "SELECT p FROM Product p LEFT JOIN FETCH p.productCategories ppc LEFT JOIN FETCH ppc.category ppcc WHERE p.id  = :id AND p.status = 'ACTIVE'")
     Optional<Product> findById(@Param(value = "id") Long id);
 
     @Query("""
-                SELECT p FROM Product p 
+                SELECT DISTINCT p FROM Product p 
                 LEFT JOIN FETCH p.productCategories ppc
                 LEFT JOIN FETCH ppc.category c
                 WHERE
@@ -43,7 +47,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 AND 
                 (:endDate IS NULL OR p.createdDate <= :endDate)
                 AND 
-                (:categoryId IS NULL OR c.id = :categoryId)
+                (:categoryId IS NULL OR c.id = :categoryId)  ORDER BY p.id DESC 
             """)
     Page<Product> searchPage(
             Pageable pageable,

@@ -1,5 +1,6 @@
 package com.trongphu.finalintern2.dto.category.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trongphu.finalintern2.enumutil.CategoryStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,8 +30,10 @@ public class CategoryShortResponseDTO {
 
     private String img;
 
+    @JsonFormat(pattern = "HH:mm:ss dd-MM-yyyy", timezone = "Asia/Ho_Chi_Minh")
     private Date createdDate;
 
+    @JsonFormat(pattern = "HH:mm:ss dd-MM-yyyy", timezone = "Asia/Ho_Chi_Minh")
     private Date modifiedDate;
 
     private String createdBy;

@@ -1,9 +1,17 @@
 package com.trongphu.finalintern2.controller;
 
+import com.trongphu.finalintern2.exception.ResourceNotFoundException;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by Trong Phu on 19/09/2024 09:27
@@ -14,8 +22,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("images")
 public class ImageController {
 
-    @GetMapping(value = "")
-    public ResponseEntity<?> getImageByName(){
-       return null;
+    @GetMapping(value = "{imgName}")
+    public ResponseEntity<?> getImageByName(
+            @PathVariable String imgName
+    ){
+        try {
+            Path imagePath = Paths.get("uploads").resolve(imgName);
+            Resource image = new FileSystemResource(imagePath.toFile());
+            if(image.exists()) {
+                return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG)
+                        .body(image);
+            }else {
+                throw new ResourceNotFoundException("exception.ResourceNotFoundException", imgName);
+            }
+        }catch (Exception e){
+            throw new ResourceNotFoundException("exception.ResourceNotFoundException", imgName);
+        }
     }
 }

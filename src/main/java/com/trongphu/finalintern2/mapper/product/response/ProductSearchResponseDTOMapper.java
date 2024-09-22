@@ -4,6 +4,8 @@ import com.trongphu.finalintern2.dto.product.response.ProductSearchResponseDTO;
 import com.trongphu.finalintern2.entity.Category;
 import com.trongphu.finalintern2.entity.Product;
 import com.trongphu.finalintern2.entity.ProductCategory;
+import com.trongphu.finalintern2.enumutil.CategoryStatus;
+import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import com.trongphu.finalintern2.mapper.BaseMapper;
 import com.trongphu.finalintern2.util.variabletp.VariableHehe;
 import org.mapstruct.Mapper;
@@ -32,6 +34,7 @@ public interface ProductSearchResponseDTOMapper extends BaseMapper<Product, Prod
     @Named(value = "cate")
     default String setStringCategories(List<ProductCategory> list){
         return list.stream()
+                .filter(productCategory -> productCategory.getStatus().equals(ProductCategoryStatus.ACTIVE))
                 .map(ProductCategory::getCategory)
                 .map(Category::getCategoryCode)
                 .collect(Collectors.joining(", "));

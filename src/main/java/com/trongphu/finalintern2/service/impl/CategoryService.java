@@ -4,6 +4,7 @@ import com.trongphu.finalintern2.dto.category.request.CategoryRequestDTO;
 import com.trongphu.finalintern2.dto.category.response.CategoryResponseDTO;
 import com.trongphu.finalintern2.entity.Category;
 import com.trongphu.finalintern2.enumutil.CategoryStatus;
+import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import com.trongphu.finalintern2.exception.DuplicateCodeEntityException;
 import com.trongphu.finalintern2.exception.ResourceNotFoundException;
 import com.trongphu.finalintern2.exception.file.FileUploadErrorException;
@@ -105,7 +106,9 @@ public class CategoryService implements ICategoryService {
 
         //Kiểm tra nếu có file ảnh đính kèm thì update lại tên ảnh
         if (categoryRequestDTO.getImgFile() != null) {
-            handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+            if(!categoryRequestDTO.getImgFile().isEmpty()){
+                handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+            }
         }
         // Lưu đối tượng cần cập nhật vào DB
         Category categoryUpdated = categoryRepository.save(categoryExisting);
@@ -113,10 +116,11 @@ public class CategoryService implements ICategoryService {
     }
 
     // Xóa mềm
-    @Transactional
     @Override
+    @Transactional
     public void softDelete(Long id) {
-        categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName()));
+        Category categoryD = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName()));
+        categoryD.getProductCategories().stream().forEach(productCategory -> {productCategory.setStatus(ProductCategoryStatus.INACTIVE);});
         categoryRepository.softDelete(id);
     }
 

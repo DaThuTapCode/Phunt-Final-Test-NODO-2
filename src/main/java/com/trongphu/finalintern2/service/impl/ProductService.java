@@ -8,6 +8,7 @@ import com.trongphu.finalintern2.entity.Product;
 import com.trongphu.finalintern2.entity.ProductCategory;
 import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import com.trongphu.finalintern2.enumutil.ProductStatus;
+import com.trongphu.finalintern2.exception.DuplicateCodeEntityException;
 import com.trongphu.finalintern2.exception.ResourceNotFoundException;
 import com.trongphu.finalintern2.exception.file.FileUploadErrorException;
 import com.trongphu.finalintern2.mapper.product.request.ProductRequestDTOMapper;
@@ -85,6 +86,10 @@ public class ProductService implements IProductService {
     @Override
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO productRequestDTO) {
+
+        if( productRepository.findCategoryByProductCode(productRequestDTO.getProductCode()).isPresent()){
+          throw   new DuplicateCodeEntityException("exception.DuplicateCodeEntityException", productRequestDTO.getProductCode());
+        }
         Product product = productRequestDTOMapper.toEntity(productRequestDTO);
         //Kiểm tra xem có id của các category đi kèm không
         setProductCategory(product, productRequestDTO.getCategoryIds());
@@ -140,16 +145,16 @@ public class ProductService implements IProductService {
                 if(productRequestDTO.getCategoryIds().size() > 0 ){
                     List<Category> categoryList = categoryRepository.findAllById(productRequestDTO.getCategoryIds());
                     for (Category category: categoryList) {
-                        ProductCategory productCategory = ProductCategory
-                                .builder()
-                                .product(productExisting)
-                                .category(category)
-                                .createdBy("ADMIN-NTP")
-                                .modifiedBy("ADMIN-NTP")
-                                .createdDate(new Date())
-                                .modifiedDate(new Date())
-                                .status(ProductCategoryStatus.ACTIVE)
-                                .build();
+
+                        ProductCategory productCategory = new  ProductCategory();
+                        productCategory.setProduct(productExisting);
+                        productCategory.setCategory(category);
+                        productCategory.setCreatedDate(new Date());
+                        productCategory.setModifiedDate(new Date());
+                        productCategory.setCreatedBy("ADMIN-NTP");
+                        productCategory.setModifiedBy("ADMIN-NTP");
+                        productCategory.setStatus(ProductCategoryStatus.ACTIVE);
+
                         productCategoryList.add(productCategory);
                     }
                 }
@@ -185,20 +190,23 @@ public class ProductService implements IProductService {
     }
 
     void setProductCategory(Product product, List<Long> listIdCategory) {
-        if (listIdCategory != null || !listIdCategory.isEmpty()) {
-            List<Category> categoryList = categoryRepository.findAllById(listIdCategory);
-            List<ProductCategory> productCategories = categoryList.stream()
-                    .map(category -> ProductCategory
-                            .builder()
-                            .product(product)
-                            .category(category)
-                            .createdBy("ADMIN-NTP")
-                            .modifiedBy("ADMIN-NTP")
-                            .createdDate(new Date())
-                            .modifiedDate(new Date())
-                            .status(ProductCategoryStatus.ACTIVE)
-                            .build()).collect(Collectors.toList());
-            product.setProductCategories(productCategories);
+        if (listIdCategory != null ) {
+            if( !listIdCategory.isEmpty()) {
+                List<Category> categoryList = categoryRepository.findAllById(listIdCategory);
+                List<ProductCategory> productCategories = categoryList.stream()
+                        .map(category -> {
+                            ProductCategory productCategory = new ProductCategory();
+                            productCategory.setProduct(product);
+                            productCategory.setCategory(category);
+                            productCategory.setCreatedBy("ADMIN-NTP");
+                            productCategory.setModifiedBy("ADMIN-NTP");
+                            productCategory.setCreatedDate(new Date());
+                            productCategory.setModifiedDate(new Date());
+                            productCategory.setStatus(ProductCategoryStatus.ACTIVE);
+                            return productCategory;
+                        }).collect(Collectors.toList());
+                product.setProductCategories(productCategories);
+            }
         }
     }
 

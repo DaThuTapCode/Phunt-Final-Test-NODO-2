@@ -5,6 +5,8 @@ import com.trongphu.finalintern2.dto.product.response.ProductResponseDTO;
 
 import com.trongphu.finalintern2.entity.Product;
 import com.trongphu.finalintern2.entity.ProductCategory;
+
+import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import com.trongphu.finalintern2.mapper.BaseMapper;
 import com.trongphu.finalintern2.mapper.category.response.CategoryShortResponseDTOMapper;
 import com.trongphu.finalintern2.util.variabletp.VariableHehe;
@@ -36,6 +38,7 @@ public interface ProductResponseDTOMapper extends BaseMapper<Product, ProductRes
             return null;
         }
         return productCategories.stream()
+                .filter(productCategory -> productCategory.getStatus().equals(ProductCategoryStatus.ACTIVE))
                 .map(ProductCategory::getCategory)
                 .map(categoryShortResponseDtoMapper::toDTO)
                 .collect(Collectors.toList());

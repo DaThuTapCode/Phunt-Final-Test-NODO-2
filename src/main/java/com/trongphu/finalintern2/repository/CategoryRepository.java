@@ -25,7 +25,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
              AND (:categoryCode IS NULL OR c.categoryCode LIKE %:categoryCode%)
              AND (:name IS NULL OR c.name LIKE %:name%)
              AND (:startDate IS NULL OR c.createdDate >= :startDate)
-             AND (:endDate IS NULL OR c.createdDate <= :endDate)
+             AND (:endDate IS NULL OR c.createdDate <= :endDate)  ORDER BY c.id DESC 
             """)
     Page<Category> searchPage(
             Pageable pageable,
