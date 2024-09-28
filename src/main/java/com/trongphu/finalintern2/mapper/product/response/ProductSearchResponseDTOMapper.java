@@ -28,11 +28,15 @@ public interface ProductSearchResponseDTOMapper extends BaseMapper<Product, Prod
     ProductSearchResponseDTO toDTO(Product product);
 
     @Named(value = "img")
-    default String setUrlImage(String img){
-        return VariableHehe.SERVER_PORT + "/images/" + img;
+    default String setUrlImage(String img) {
+        if (img != null) {
+            return VariableHehe.SERVER_PORT + "/images/" + img;
+        }
+        return null;
     }
+
     @Named(value = "cate")
-    default String setStringCategories(List<ProductCategory> list){
+    default String setStringCategories(List<ProductCategory> list) {
         return list.stream()
                 .filter(productCategory -> productCategory.getStatus().equals(ProductCategoryStatus.ACTIVE))
                 .map(ProductCategory::getCategory)

@@ -4,13 +4,16 @@ import com.trongphu.finalintern2.config.i18n.Translator;
 import com.trongphu.finalintern2.exception.file.FileExceededSizeException;
 import com.trongphu.finalintern2.exception.file.InvalidFileTypeException;
 import com.trongphu.finalintern2.objectshttp.ResponseErrorObject;
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -28,6 +31,9 @@ import java.util.Map;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));}
 
     private ResponseErrorObject createResponseError(WebRequest request, HttpStatus status, String message) {
         return ResponseErrorObject.builder()
@@ -77,15 +83,67 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(errorObject);
     }
 
+//    @ExceptionHandler(MethodArgumentNotValidException.class)
+//    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, WebRequest request) {
+//        Map<String, String> errors = new HashMap<>();
+//        e.getBindingResult().getAllErrors().forEach((error) -> {
+//            String fieldName = ((FieldError) error).getField();
+//            String errorMessage = Translator.toLocale(error.getDefaultMessage());
+//            errors.put(fieldName, errorMessage);
+//        });
+//        return ResponseEntity.badRequest().body(errors);
+//    }
+
+
+    /**
+     * Bắt exception {@link MethodArgumentNotValidException} validation đối tượng
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, WebRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = Translator.toLocale(error.getDefaultMessage());
-            errors.put(fieldName, errorMessage);
-        });
-        return ResponseEntity.badRequest().body(errors);
+    public ResponseEntity<ResponseErrorObject> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
+        System.out.println("[-----> ĐÃ BẮT ĐƯỢC MethodArgumentNotValidException]");
+
+        // Lấy lỗi đầu tiên từ danh sách lỗi
+        FieldError firstFieldError = ex.getBindingResult().getFieldErrors().stream().findFirst().orElse(null);
+
+        if (firstFieldError != null) {
+            String fieldErrorName = firstFieldError.getField(); // Tên trường lỗi
+            String errorCode = firstFieldError.getCode(); // Loại mã lỗi
+
+            System.out.println("[FIELD ERROR: " + fieldErrorName + "]");
+            System.out.println("[ERROR CODE: " + errorCode + "]");
+
+            String errorMessage = "";
+            switch (errorCode) {
+                case "NotBlank", "Email", "NotNull":
+                    errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName});
+                    break;
+                case "Range", "Length":
+                    Object min = firstFieldError.getArguments().length > 2 ? firstFieldError.getArguments()[2] : "";
+                    Object max = firstFieldError.getArguments().length > 1 ? firstFieldError.getArguments()[1] : "";
+                    errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName, min, max});
+                    break;
+                case "Min":
+                    errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName, firstFieldError.getArguments()[1]});
+                    break;
+                default:
+                    errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName});
+                    break;
+            }
+
+            ResponseErrorObject object = ResponseErrorObject.builder()
+                    .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                    .message(errorMessage)
+                    .path(request.getDescription(false).replace("uri=", ""))
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            return ResponseEntity.badRequest().body(object);
+        }
+
+        // Trường hợp không tìm thấy lỗi nào
+        return ResponseEntity.badRequest().build();
     }
+
 
 }

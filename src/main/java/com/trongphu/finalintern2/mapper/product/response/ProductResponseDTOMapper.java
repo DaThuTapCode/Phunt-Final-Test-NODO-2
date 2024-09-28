@@ -34,7 +34,7 @@ public interface ProductResponseDTOMapper extends BaseMapper<Product, ProductRes
     ProductResponseDTO toDTO(Product product);
 
     default List<CategoryShortResponseDTO> mapListCategoryShortResponseDTO(List<ProductCategory> productCategories) {
-        if(productCategories == null){
+        if (productCategories == null) {
             return null;
         }
         return productCategories.stream()
@@ -45,8 +45,11 @@ public interface ProductResponseDTOMapper extends BaseMapper<Product, ProductRes
     }
 
     @Named(value = "img")
-    default String setUrlImg(String img){
-        return VariableHehe.SERVER_PORT + "/images/" + img;
+    default String setUrlImg(String img) {
+        if (img != null) {
+            return VariableHehe.SERVER_PORT + "/images/" + img;
+        }
+        return null;
     }
 
 }

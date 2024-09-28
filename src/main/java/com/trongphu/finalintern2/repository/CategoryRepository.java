@@ -3,6 +3,7 @@ package com.trongphu.finalintern2.repository;
 import com.trongphu.finalintern2.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +20,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("SELECT c FROM Category  c WHERE c.categoryCode = :code")
     Category findCategoryByCategoryCode(@Param(value = "code") String code);
 
+//    @EntityGraph(attributePaths = {"productCategories", "productCategories.product"})
     @Query("""
              SELECT c FROM Category c
              WHERE c.status = 'ACTIVE'

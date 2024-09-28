@@ -85,7 +85,7 @@ public class CategoryService implements ICategoryService {
             categoryNew.setCreatedBy("ADMIN-NTP");
             categoryNew.setModifiedBy("ADMIN-NTP");
             categoryNew.setStatus(CategoryStatus.ACTIVE);
-            handleUploadFile(categoryNew, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+            handleUploadFile(categoryNew, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 2L);
             return categoryResponseDTOMapper.toDTO(categoryRepository.save(categoryNew));
         }
         return null;
@@ -107,7 +107,7 @@ public class CategoryService implements ICategoryService {
         //Kiểm tra nếu có file ảnh đính kèm thì update lại tên ảnh
         if (categoryRequestDTO.getImgFile() != null) {
             if(!categoryRequestDTO.getImgFile().isEmpty()){
-                handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+                handleUploadFile(categoryExisting, categoryRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 2L);
             }
         }
         // Lưu đối tượng cần cập nhật vào DB

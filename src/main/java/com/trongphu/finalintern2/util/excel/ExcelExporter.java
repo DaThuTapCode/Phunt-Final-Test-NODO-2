@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,7 +46,13 @@ public class ExcelExporter {
             Date endDate
     ) throws IOException {
         // Lấy danh sách Category từ DB
-        List<Category> categories = categoryRepository.findAll();
+         List<Category> categories = new ArrayList<>();
+        if(mode == 1){
+            categories =  categoryRepository.findAll();
+        }else if (mode == 2){
+            categories =  categoryRepository.searchPage(null, categoryCode, name, startDate, endDate).getContent();
+        }
+
 
         // Tạo Workbook và Sheet
         Workbook workbook = new XSSFWorkbook();
@@ -100,8 +107,13 @@ public class ExcelExporter {
             Date endDate,
             Long categoryId
     ) throws IOException {
-        List<Product> productList = productRepository.findAll();
+        List<Product> productList = new ArrayList<>();
 
+        if(mode == 1){
+            productList =  productRepository.findAll();
+        }else if (mode == 2){
+            productList =  productRepository.searchPage(null, productCode, name, startDate, endDate, categoryId).getContent();
+        }
         // Tạo Workbook và Sheet
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Danh sách sản phẩm");

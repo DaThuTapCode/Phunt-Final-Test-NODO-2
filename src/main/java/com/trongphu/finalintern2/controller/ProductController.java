@@ -71,28 +71,27 @@ public class ProductController {
     }
 
     @PostMapping(value = "create")
-    public ResponseEntity<ResponseDataObject<ProductResponseDTO>> createNewProduct(
+    public ResponseEntity<ProductResponseDTO> createNewProduct(
             @ModelAttribute @Validated(value = CreateGroup.class) ProductRequestDTO productRequestDTO
     ) {
-        ResponseDataObject<ProductResponseDTO> responseDataObject = new ResponseDataObject(HttpStatus.OK.value(), Translator.toLocale("product.created_successfully"), productService.create(productRequestDTO));
-        return ResponseEntity.ok(responseDataObject);
+
+        return ResponseEntity.ok(productService.create(productRequestDTO));
     }
 
     @PutMapping("update/{id}")
-    public ResponseEntity<ResponseDataObject> updateProduct(
+    public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
             @ModelAttribute @Validated(value = UpdateGroup.class) ProductRequestDTO productRequestDTO
     ) {
-        ResponseDataObject<ProductResponseDTO> responseDataObject = new ResponseDataObject(HttpStatus.OK.value(), Translator.toLocale("product.updated_successfully"), productService.update(id, productRequestDTO));
-        return ResponseEntity.ok(responseDataObject);
+
+        return ResponseEntity.ok(productService.update(id, productRequestDTO));
     }
 
     @PutMapping(value = "delete/{id}")
-    public ResponseEntity<ResponseDataObject> deleteProduct(
+    public ResponseEntity<?> deleteProduct(
             @PathVariable Long id
     ) {
         productService.softDelete(id);
-        ResponseDataObject<ProductResponseDTO> responseDataObject = new ResponseDataObject(HttpStatus.OK.value(), Translator.toLocale("product.deleted_successfully"));
-        return ResponseEntity.ok(responseDataObject);
+        return ResponseEntity.noContent().build();
     }
 }

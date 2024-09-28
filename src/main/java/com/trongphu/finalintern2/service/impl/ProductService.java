@@ -96,7 +96,7 @@ public class ProductService implements IProductService {
         //Fix cứng các trường
         setHardDataCreateProduct(product);
         //Thêm ảnh vào sản phẩm
-        handleUpLoadFile(product, productRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+        handleUpLoadFile(product, productRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 2L);
         //Save
         Product productSaved = productRepository.save(product);
         return productResponseDTOMapper.toDTO(productSaved);
@@ -119,7 +119,7 @@ public class ProductService implements IProductService {
         //Kiểm tra file ảnh
         if (productRequestDTO.getImgFile() != null) {
             if (!productRequestDTO.getImgFile().isEmpty()) {
-                handleUpLoadFile(productExisting, productRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 10L);
+                handleUpLoadFile(productExisting, productRequestDTO.getImgFile(), FileUpLoadUtil.FILE_TYPE_IMAGE, 2L);
             }
         }
         //Cập nhật  các trường dữ liệu
@@ -176,8 +176,27 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Page<ProductSearchResponseDTO> searchProduct(PaginationObject paginationObject, String productCode, String name, Date startDate, Date endDate, Long categoryId) {
-        return productRepository.searchPage(paginationObject.toPageable(), productCode, name, startDate, FormatDateUtil.setEndDate(endDate), categoryId).map(productSearchResponseDTOMapper::toDTO);
+    public Page<ProductSearchResponseDTO> searchProduct(
+            PaginationObject paginationObject,
+            String productCode,
+            String name,
+            Date startDate,
+            Date endDate,
+            Long categoryId
+    ) {
+        Page<Product> productPage = productRepository.searchPage(paginationObject.toPageable(), productCode, name, startDate, FormatDateUtil.setEndDate(endDate), categoryId);
+        List<Long> productIds = productPage.getContent().stream().map(Product::getId).collect(Collectors.toList());
+        List<Product> productsWithCategories = productRepository.findProductsWithCategoriesByIds(productIds, categoryId);
+
+        for (Product product : productPage.getContent()) {
+            for (Product productWithCategories : productsWithCategories) {
+                if (product.getId().equals(productWithCategories.getId())) {
+                    product.setProductCategories(productWithCategories.getProductCategories());
+                    break;
+                }
+            }
+        }
+        return productPage.map(productSearchResponseDTOMapper::toDTO);
     }
 
     void setDataUpdate(Product productExisting, Product dataUpdate) {

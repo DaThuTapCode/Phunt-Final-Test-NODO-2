@@ -20,6 +20,9 @@ public interface CategoryShortResponseDTOMapper extends BaseMapper<Category, Cat
     CategoryShortResponseDTO toDTO(Category category);
     @Named(value = "img")
     default String mapServerForImage(String img) {
-        return VariableHehe.SERVER_PORT + "/images/" + img;
+        if(img != null){
+            return VariableHehe.SERVER_PORT + "/images/" + img;
+        }
+        return null;
     }
 }

@@ -22,6 +22,9 @@ public interface CategoryResponseDTOMapper extends BaseMapper<Category, Category
 
     @Named(value = "img")
     default String mapServerForImage(String img) {
-        return VariableHehe.SERVER_PORT + "/images/" + img;
+        if(img != null){
+            return VariableHehe.SERVER_PORT + "/images/" + img;
+        }
+       return null;
     }
 }
