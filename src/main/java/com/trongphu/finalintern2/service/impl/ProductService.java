@@ -132,28 +132,12 @@ public class ProductService implements IProductService {
         if (productRequestDTO.getCategoryIds() != null) {
             List<ProductCategory> productCategoryList = productExisting.getProductCategories();
             //Case 2 người dùng có truyền id đối với những bản ghi đã tồn tại thì set là ACTIVE còn bản ghi chưa tồn tại thì Thêm  mới
-
-                //Thêm mới các bản ghi chưa tồn tại
-                if(productRequestDTO.getCategoryIds().size() > 0 ){
+                //Xử lý cập nhật trạng thái cho các bản ghi đã tồn tại
+                if (productCategoryList != null) {
                     List<Category> categoryList = categoryRepository.findAllById(productRequestDTO.getCategoryIds());
                     if(categoryList.size() < productRequestDTO.getCategoryIds().size()) {
                         throw new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName());
                     }
-                    for (Category category: categoryList) {
-                        ProductCategory productCategory = new  ProductCategory();
-                        productCategory.setProduct(productExisting);
-                        productCategory.setCategory(category);
-                        productCategory.setCreatedDate(new Date());
-                        productCategory.setModifiedDate(new Date());
-                        productCategory.setCreatedBy("ADMIN-NTP");
-                        productCategory.setModifiedBy("ADMIN-NTP");
-                        productCategory.setStatus(ProductCategoryStatus.ACTIVE);
-                        productCategoryList.add(productCategory);
-                    }
-                }
-
-                //Xử lý cập nhật trạng thái cho các bản ghi đã tồn tại
-                if (productCategoryList != null) {
                     productCategoryList.forEach(productCategory -> {
                         Long currentCategoryId = productCategory.getCategory().getId();
                         //Nếu categoryId có trong danh sách truyền vào set ACTIVE
@@ -165,6 +149,24 @@ public class ProductService implements IProductService {
                             productCategory.setStatus(ProductCategoryStatus.INACTIVE);
                         }
                     });
+            }
+            //Thêm mới các bản ghi chưa tồn tại
+            if(productRequestDTO.getCategoryIds().size() > 0 ){
+                List<Category> categoryList = categoryRepository.findAllById(productRequestDTO.getCategoryIds());
+                if(categoryList.size() < productRequestDTO.getCategoryIds().size()) {
+                    throw new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName());
+                }
+                for (Category category: categoryList) {
+                    ProductCategory productCategory = new  ProductCategory();
+                    productCategory.setProduct(productExisting);
+                    productCategory.setCategory(category);
+                    productCategory.setCreatedDate(new Date());
+                    productCategory.setModifiedDate(new Date());
+                    productCategory.setCreatedBy("ADMIN-NTP");
+                    productCategory.setModifiedBy("ADMIN-NTP");
+                    productCategory.setStatus(ProductCategoryStatus.ACTIVE);
+                    productCategoryList.add(productCategory);
+                }
             }
         } else {
             productExisting.getProductCategories().stream().forEach(productCategory -> productCategory.setStatus(ProductCategoryStatus.INACTIVE));
