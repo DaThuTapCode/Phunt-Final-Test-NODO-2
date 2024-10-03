@@ -4,6 +4,7 @@ import com.trongphu.finalintern2.entity.Category;
 import com.trongphu.finalintern2.entity.Product;
 import com.trongphu.finalintern2.entity.ProductCategory;
 import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
+import com.trongphu.finalintern2.exception.ResourceNotFoundException;
 import com.trongphu.finalintern2.repository.CategoryRepository;
 import com.trongphu.finalintern2.repository.ProductRepository;
 import com.trongphu.finalintern2.util.formater.FormatDateUtil;
@@ -53,6 +54,9 @@ public class ExcelExporter {
             categories =  categoryRepository.searchPage(null, categoryCode, name, startDate, endDate).getContent();
         }
 
+//        if(categories.isEmpty()) {
+//            throw new ResourceNotFoundException("excel.error.categoryListIsEmpty", "");
+//        }
 
         // Tạo Workbook và Sheet
         Workbook workbook = new XSSFWorkbook();

@@ -27,7 +27,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
     List<Product> findAll();
 
-    @Query("SELECT p FROM Product  p WHERE p.productCode = :code")
+    @Query("SELECT p FROM Product  p WHERE p.productCode = :code AND p.status = 'ACTIVE'")
     Optional<Product> findCategoryByProductCode(@Param(value = "code") String code);
 
     @Override
@@ -50,8 +50,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 AND 
                 (:endDate IS NULL OR p.createdDate <= :endDate)
                 AND 
-                (:categoryId IS NULL OR c.id = :categoryId)  ORDER BY p.id DESC 
+                (:categoryId IS NULL OR c.id = :categoryId AND ppc.status = 'ACTIVE')  ORDER BY p.id DESC 
             """)
+
     Page<Product> searchPage(
             Pageable pageable,
             @Param(value = "productCode") String productCode,
@@ -60,17 +61,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param(value = "endDate") Date endDate,
             @Param(value = "categoryId") Long categoryId
     );
+
+
+
     @Query("""
         SELECT p FROM Product p 
         LEFT JOIN FETCH p.productCategories pc
         LEFT JOIN FETCH pc.category c
         WHERE p.id IN :productIds
-        AND (:categoryId IS NULL OR c.id = :categoryId)
     """)
     List<Product> findProductsWithCategoriesByIds(
-            @Param("productIds") List<Long> productIds,
-            @Param("categoryId") Long categoryId
+            @Param("productIds") List<Long> productIds
     );
+
 
 
     @Modifying

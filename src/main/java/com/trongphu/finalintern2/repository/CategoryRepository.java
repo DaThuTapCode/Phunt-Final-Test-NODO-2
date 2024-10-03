@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 /**
  * Created by Trong Phu on 17/09/2024 22:47
@@ -17,7 +18,7 @@ import java.util.Optional;
  * @author Trong Phu
  */
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    @Query("SELECT c FROM Category  c WHERE c.categoryCode = :code")
+    @Query("SELECT c FROM Category  c WHERE c.categoryCode = :code AND c.status ='ACTIVE'")
     Category findCategoryByCategoryCode(@Param(value = "code") String code);
 
 //    @EntityGraph(attributePaths = {"productCategories", "productCategories.product"})
@@ -46,5 +47,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("UPDATE Category c SET c.status = 'INACTIVE' WHERE c.id = :id")
     void softDelete(@Param(value = "id") Long id);
 
+    @Override
+    @Query("SELECT c FROM Category c where c.id IN :longs AND c.status = 'ACTIVE'")
+    List<Category> findAllById(Iterable<Long> longs);
 
+    @Override
+    @Query("SELECT c FROM Category c where c.status = 'ACTIVE'")
+    List<Category> findAll();
 }

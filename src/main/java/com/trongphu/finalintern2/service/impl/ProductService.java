@@ -9,6 +9,7 @@ import com.trongphu.finalintern2.entity.ProductCategory;
 import com.trongphu.finalintern2.enumutil.ProductCategoryStatus;
 import com.trongphu.finalintern2.enumutil.ProductStatus;
 import com.trongphu.finalintern2.exception.DuplicateCodeEntityException;
+import com.trongphu.finalintern2.exception.NotIntegerException;
 import com.trongphu.finalintern2.exception.ResourceNotFoundException;
 import com.trongphu.finalintern2.exception.file.FileUploadErrorException;
 import com.trongphu.finalintern2.mapper.product.request.ProductRequestDTOMapper;
@@ -90,7 +91,9 @@ public class ProductService implements IProductService {
         if( productRepository.findCategoryByProductCode(productRequestDTO.getProductCode()).isPresent()){
           throw   new DuplicateCodeEntityException("exception.DuplicateCodeEntityException", productRequestDTO.getProductCode());
         }
+
         Product product = productRequestDTOMapper.toEntity(productRequestDTO);
+        checkInteger(product);
         //Kiểm tra xem có id của các category đi kèm không
         setProductCategory(product, productRequestDTO.getCategoryIds());
         //Fix cứng các trường
@@ -116,6 +119,7 @@ public class ProductService implements IProductService {
     public ProductResponseDTO update(Long id, ProductRequestDTO productRequestDTO) {
         Product productExisting = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("exception.ResourceNotFoundException", Product.class.getSimpleName()));
         Product dataUpdate = productRequestDTOMapper.toEntity(productRequestDTO);
+
         //Kiểm tra file ảnh
         if (productRequestDTO.getImgFile() != null) {
             if (!productRequestDTO.getImgFile().isEmpty()) {
@@ -128,24 +132,14 @@ public class ProductService implements IProductService {
         if (productRequestDTO.getCategoryIds() != null) {
             List<ProductCategory> productCategoryList = productExisting.getProductCategories();
             //Case 2 người dùng có truyền id đối với những bản ghi đã tồn tại thì set là ACTIVE còn bản ghi chưa tồn tại thì Thêm  mới
-            //Xử lý cập nhật trạng thái cho các bản ghi đã tồn tại
-            if (productCategoryList != null) {
-                productCategoryList.forEach(productCategory -> {
-                    Long currentCategoryId = productCategory.getCategory().getId();
-                    //Nếu categoryId có trong danh sách truyền vào set ACTIVE
-                    if (productRequestDTO.getCategoryIds().contains(currentCategoryId)) {
-                        productCategory.setStatus(ProductCategoryStatus.ACTIVE);
-                        productRequestDTO.getCategoryIds().removeIf(aLong -> aLong == currentCategoryId);
-                    } else {
-                        //Nếu không có trong danh sách set INACTIVE
-                        productCategory.setStatus(ProductCategoryStatus.INACTIVE);
-                    }
-                });
+
                 //Thêm mới các bản ghi chưa tồn tại
                 if(productRequestDTO.getCategoryIds().size() > 0 ){
                     List<Category> categoryList = categoryRepository.findAllById(productRequestDTO.getCategoryIds());
+                    if(categoryList.size() < productRequestDTO.getCategoryIds().size()) {
+                        throw new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName());
+                    }
                     for (Category category: categoryList) {
-
                         ProductCategory productCategory = new  ProductCategory();
                         productCategory.setProduct(productExisting);
                         productCategory.setCategory(category);
@@ -154,10 +148,23 @@ public class ProductService implements IProductService {
                         productCategory.setCreatedBy("ADMIN-NTP");
                         productCategory.setModifiedBy("ADMIN-NTP");
                         productCategory.setStatus(ProductCategoryStatus.ACTIVE);
-
                         productCategoryList.add(productCategory);
                     }
                 }
+
+                //Xử lý cập nhật trạng thái cho các bản ghi đã tồn tại
+                if (productCategoryList != null) {
+                    productCategoryList.forEach(productCategory -> {
+                        Long currentCategoryId = productCategory.getCategory().getId();
+                        //Nếu categoryId có trong danh sách truyền vào set ACTIVE
+                        if (productRequestDTO.getCategoryIds().contains(currentCategoryId)) {
+                            productCategory.setStatus(ProductCategoryStatus.ACTIVE);
+                            productRequestDTO.getCategoryIds().removeIf(aLong -> aLong == currentCategoryId);
+                        } else {
+                            //Nếu không có trong danh sách set INACTIVE
+                            productCategory.setStatus(ProductCategoryStatus.INACTIVE);
+                        }
+                    });
             }
         } else {
             productExisting.getProductCategories().stream().forEach(productCategory -> productCategory.setStatus(ProductCategoryStatus.INACTIVE));
@@ -186,7 +193,8 @@ public class ProductService implements IProductService {
     ) {
         Page<Product> productPage = productRepository.searchPage(paginationObject.toPageable(), productCode, name, startDate, FormatDateUtil.setEndDate(endDate), categoryId);
         List<Long> productIds = productPage.getContent().stream().map(Product::getId).collect(Collectors.toList());
-        List<Product> productsWithCategories = productRepository.findProductsWithCategoriesByIds(productIds, categoryId);
+
+        List<Product> productsWithCategories = productRepository.findProductsWithCategoriesByIds(productIds);
 
         for (Product product : productPage.getContent()) {
             for (Product productWithCategories : productsWithCategories) {
@@ -212,6 +220,10 @@ public class ProductService implements IProductService {
         if (listIdCategory != null ) {
             if( !listIdCategory.isEmpty()) {
                 List<Category> categoryList = categoryRepository.findAllById(listIdCategory);
+
+                if(categoryList.size() < listIdCategory.size()) {
+                    throw new ResourceNotFoundException("exception.ResourceNotFoundException", Category.class.getSimpleName());
+                }
                 List<ProductCategory> productCategories = categoryList.stream()
                         .map(category -> {
                             ProductCategory productCategory = new ProductCategory();
@@ -236,4 +248,11 @@ public class ProductService implements IProductService {
             throw new FileUploadErrorException("exception_file.FileUploadErrorException");
         }
     }
+
+    public void checkInteger(Product product) {
+        if (product.getPrice() % 1 != 0) {
+            throw new NotIntegerException("exception.PriceNotIntegerException");
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ package com.trongphu.finalintern2.exception;
 
 import com.trongphu.finalintern2.config.i18n.Translator;
 import com.trongphu.finalintern2.exception.file.FileExceededSizeException;
+import com.trongphu.finalintern2.exception.file.FileUploadErrorException;
 import com.trongphu.finalintern2.exception.file.InvalidFileTypeException;
 import com.trongphu.finalintern2.objectshttp.ResponseErrorObject;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -33,7 +34,8 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));}
+        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
+    }
 
     private ResponseErrorObject createResponseError(WebRequest request, HttpStatus status, String message) {
         return ResponseErrorObject.builder()
@@ -46,14 +48,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-                    FileExceededSizeException.class,
-                    InvalidFileTypeException.class,
-                    DuplicateCodeEntityException.class,
-                    InvalidArgumentException.class,
-                    ResourceNotFoundException.class,
-                    MethodArgumentTypeMismatchException.class,
-                    MissingPathVariableException.class
-            })
+            FileExceededSizeException.class,
+            InvalidFileTypeException.class,
+            DuplicateCodeEntityException.class,
+            InvalidArgumentException.class,
+            ResourceNotFoundException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingPathVariableException.class,
+            NotIntegerException.class,
+            FileUploadErrorException.class
+    })
     public ResponseEntity<ResponseErrorObject> handleException(Exception e, WebRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         String message;
@@ -70,11 +74,15 @@ public class GlobalExceptionHandler {
             message = Translator.toLocale(e.getMessage(), new Object[]{((ResourceNotFoundException) e).getNameResource()});
             ResponseErrorObject errorObject = createResponseError(request, HttpStatus.NOT_FOUND, message);
             errorObject.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
-            return ResponseEntity.status(status).body(errorObject);
+            return ResponseEntity.status(404).body(errorObject);
         } else if (e instanceof MethodArgumentTypeMismatchException) {
             message = Translator.toLocale("exception.MethodArgumentTypeMismatchException", new Object[]{((MethodArgumentTypeMismatchException) e).getValue(), ((MethodArgumentTypeMismatchException) e).getName()});
         } else if (e instanceof MissingPathVariableException) {
             message = Translator.toLocale("exception.MissingPathVariableException", new Object[]{((MissingPathVariableException) e).getVariableName()});
+        } else if (e instanceof NotIntegerException) {
+            message = Translator.toLocale(e.getMessage());
+        }else if (e instanceof FileUploadErrorException) {
+            message = "Lỗi file";
         } else {
             message = "An unexpected error occurred";
         }
@@ -125,8 +133,14 @@ public class GlobalExceptionHandler {
                 case "Min":
                     errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName, firstFieldError.getArguments()[1]});
                     break;
+                case "Pattern":
+                    errorMessage = Translator.toLocale(firstFieldError.getDefaultMessage());
+                    break;
+                case "Max":
+                    errorMessage = Translator.toLocale(firstFieldError.getDefaultMessage());
+                    break;
                 default:
-                    errorMessage = Translator.toLocale(errorCode, new Object[]{fieldErrorName});
+                    errorMessage = Translator.toLocale("exception.DataInputNotValid", new Object[]{fieldErrorName});
                     break;
             }
 
